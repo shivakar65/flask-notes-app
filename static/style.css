@@ -1,0 +1,201 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+form {
+    background: white;
+    width: 300px;
+    margin: 30px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+input, textarea {
+    width: 90%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    margin-top: 12px;
+    padding: 8px 15px;
+    border: none;
+    background: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+/* Navbar */
+.navbar {
+    background: #333;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 30px;
+}
+
+.navbar a {
+    color: white;
+    margin-left: 15px;
+    font-weight: bold;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Hero Section */
+.hero {
+    padding: 60px 20px;
+    background: linear-gradient(to right, #4CAF50, #2e8b57);
+    color: white;
+}
+
+.hero h1 {
+    font-size: 40px;
+}
+
+.btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: white;
+    color: #2e8b57;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* Features */
+.features {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    width: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Footer */
+.footer {
+    margin-top: 40px;
+    padding: 15px;
+    background: #222;
+    color: white;
+}
+/* Centering container */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(to right, #667eea, #764ba2);
+}
+
+/* Card */
+.auth-card {
+    background: white;
+    padding: 40px;
+    width: 320px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+/* Form inputs */
+.auth-card input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* Button */
+.primary-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.primary-btn:hover {
+    background: #5a67d8;
+}
+
+/* Switch text */
+.switch-text {
+    margin-top: 20px;
+    font-size: 14px;
+}
+/* Dashboard Container */
+.dashboard-container {
+    padding: 40px;
+}
+
+/* Welcome Card */
+.welcome-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+/* Notes Section */
+.notes-section h3 {
+    margin-bottom: 15px;
+}
+
+/* Notes Grid */
+.notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+/* Individual Note Card */
+.note-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: 0.3s;
+}
+
+.note-card:hover {
+    transform: translateY(-5px);
+}

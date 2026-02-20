@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <div class="logo">MyNotes 🔥</div>
+    <div>
+        <a href="/add_note">Add Note</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<!-- Dashboard Container -->
+<div class="dashboard-container">
+
+    <div class="welcome-card">
+        <h2>Welcome, {{ username }} 👋</h2>
+        <p>Your personal notes space.</p>
+    </div>
+
+    <div class="notes-section">
+        <h3>Your Notes 📝</h3>
+
+        {% if notes %}
+            <div class="notes-grid">
+                {% for note in notes %}
+                    <div class="note-card">
+                        <p>{{ note[0] }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No notes yet. Start adding some!</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
