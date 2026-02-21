@@ -2,9 +2,80 @@
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
+ADMIN_USERNAME = "shivkaradmin"
+ADMIN_PASSWORD = "149209"
+
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+#-----------------------
+#ADMIN LOGIN
+#-----------------------
+
+@app.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session["admin"] = True
+            return redirect("/admin-dashboard")
+        else:
+            return "Invalid Admin Credentials ❌"
+
+    return """
+        <h2>Admin Login 🔐</h2>
+        <form method="POST">
+            <input name="username" placeholder="Admin Username"><br><br>
+            <input type="password" name="password" placeholder="Password"><br><br>
+            <button type="submit">Login</button>
+        </form>
+    """
+    
+#-----------------------
+#ADMIN DASHBOARD
+#---------------------
+
+@app.route("/admin-dashboard")
+def admin_dashboard():
+
+    if "admin" not in session:
+        return redirect("/admin-login")
+
+    conn = sqlite3.connect("database.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id, username FROM users")
+    users = cursor.fetchall()
+
+    cursor.execute("SELECT id, user, content FROM notes")
+    notes = cursor.fetchall()
+
+    conn.close()
+
+    return f"""
+        <h1>Admin Panel 🚀</h1>
+
+        <h2>All Users</h2>
+        {users}
+
+        <h2>All Notes</h2>
+        {notes}
+
+        <br><br>
+        <a href='/admin-logout'>Logout</a>
+    """
+
+# --------------------
+# ADMIN logout
+# ------------------
+
+@app.route("/admin-logout")
+def admin_logout():
+    session.pop("admin", None)
+    return redirect("/admin-login")
 
 # ----------------------
 # DATABASE INITIALIZATION
