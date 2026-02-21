@@ -1,90 +1,32 @@
 ﻿from flask import Flask, render_template, request, session, redirect
 import sqlite3
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
-ADMIN_USERNAME = "shivkaradmin"
-ADMIN_PASSWORD = "149209"
-
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = os.environ.get("SECRET_KEY", "fallbacksecret")
 
-#-----------------------
-#ADMIN LOGIN
-#-----------------------
+# Admin credentials (SET THESE IN RENDER ENV VARIABLES)
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin123")
 
-@app.route("/admin-login", methods=["GET", "POST"])
-def admin_login():
 
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            session["admin"] = True
-            return redirect("/admin-dashboard")
-        else:
-            return "Invalid Admin Credentials ❌"
-
-    return """
-        <h2>Admin Login 🔐</h2>
-        <form method="POST">
-            <input name="username" placeholder="Admin Username"><br><br>
-            <input type="password" name="password" placeholder="Password"><br><br>
-            <button type="submit">Login</button>
-        </form>
-    """
-    
-#-----------------------
-#ADMIN DASHBOARD
-#---------------------
-
-@app.route("/admin-dashboard")
-def admin_dashboard():
-
-    if "admin" not in session:
-        return redirect("/admin-login")
-
+# ----------------------
+# DATABASE CONNECTION
+# ----------------------
+def get_db_connection():
     conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
+    conn.row_factory = sqlite3.Row
+    return conn
 
-    cursor.execute("SELECT id, username FROM users")
-    users = cursor.fetchall()
-
-    cursor.execute("SELECT id, user, content FROM notes")
-    notes = cursor.fetchall()
-
-    conn.close()
-
-    return f"""
-        <h1>Admin Panel 🚀</h1>
-
-        <h2>All Users</h2>
-        {users}
-
-        <h2>All Notes</h2>
-        {notes}
-
-        <br><br>
-        <a href='/admin-logout'>Logout</a>
-    """
-
-# --------------------
-# ADMIN logout
-# ------------------
-
-@app.route("/admin-logout")
-def admin_logout():
-    session.pop("admin", None)
-    return redirect("/admin-login")
 
 # ----------------------
 # DATABASE INITIALIZATION
 # ----------------------
 def init_db():
-    conn = sqlite3.connect("database.db")
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Users Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,7 +35,6 @@ def init_db():
         )
     """)
 
-    # Notes Table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS notes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,7 +48,7 @@ def init_db():
 
 
 # ----------------------
-# HOME ROUTE
+# HOME
 # ----------------------
 @app.route("/")
 def home():
@@ -119,19 +60,20 @@ def home():
 # ----------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if "user" in session:
+        return redirect("/dashboard")
+
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
         hashed_password = generate_password_hash(password)
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
+        conn = get_db_connection()
         try:
-            cursor.execute(
+            conn.execute(
                 "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, hashed_password),
+                (username, hashed_password)
             )
             conn.commit()
         except:
@@ -149,20 +91,22 @@ def register():
 # ----------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if "user" in session:
+        return redirect("/dashboard")
+
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
-        user = cursor.fetchone()
-
+        conn = get_db_connection()
+        user = conn.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
         conn.close()
 
-        if user and check_password_hash(user[2], password):
-            session["user"] = username
+        if user and check_password_hash(user["password"], password):
+            session["user"] = user["username"]
             return redirect("/dashboard")
         else:
             return "Invalid credentials ❌"
@@ -175,19 +119,14 @@ def login():
 # ----------------------
 @app.route("/dashboard")
 def dashboard():
-
     if "user" not in session:
         return redirect("/login")
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT content FROM notes WHERE user = ?",
+    conn = get_db_connection()
+    notes = conn.execute(
+        "SELECT * FROM notes WHERE user = ?",
         (session["user"],)
-    )
-
-    notes = cursor.fetchall()
+    ).fetchall()
     conn.close()
 
     return render_template(
@@ -202,21 +141,17 @@ def dashboard():
 # ----------------------
 @app.route("/add_note", methods=["GET", "POST"])
 def add_note():
-
     if "user" not in session:
         return redirect("/login")
 
     if request.method == "POST":
         content = request.form.get("content")
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
+        conn = get_db_connection()
+        conn.execute(
             "INSERT INTO notes (user, content) VALUES (?, ?)",
             (session["user"], content)
         )
-
         conn.commit()
         conn.close()
 
@@ -225,14 +160,64 @@ def add_note():
     return render_template("add_note.html")
 
 
-
 # ----------------------
 # LOGOUT
 # ----------------------
 @app.route("/logout")
 def logout():
     session.pop("user", None)
-    return redirect("/login")
+    return redirect("/")
+
+
+# ----------------------
+# ADMIN LOGIN
+# ----------------------
+@app.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session["admin"] = True
+            return redirect("/admin-dashboard")
+        else:
+            return "Invalid Admin Credentials ❌"
+
+    return render_template("admin_login.html")
+
+
+# ----------------------
+# ADMIN DASHBOARD
+# ----------------------
+@app.route("/admin-dashboard")
+def admin_dashboard():
+
+    if "admin" not in session:
+        return redirect("/admin-login")
+
+    conn = get_db_connection()
+
+    users = conn.execute("SELECT id, username FROM users").fetchall()
+    notes = conn.execute("SELECT id, user, content FROM notes").fetchall()
+
+    conn.close()
+
+    return render_template(
+        "admin_dashboard.html",
+        users=users,
+        notes=notes
+    )
+
+
+# ----------------------
+# ADMIN LOGOUT
+# ----------------------
+@app.route("/admin-logout")
+def admin_logout():
+    session.pop("admin", None)
+    return redirect("/admin-login")
 
 
 # ----------------------
@@ -240,4 +225,4 @@ def logout():
 # ----------------------
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True)
+    app.run()
